@@ -21,21 +21,25 @@ module.exports = {
       this.hdd(id),
     ]).spread(function(mem, cpu, hdd){
       return {
-        mem: mem,
-        cpu: cpu,
-        hdd: hdd
+        mem: mem.mem,
+        cpu: cpu.cpu,
+        hdd: hdd.hdd
       };
     });
   },
   mem: function(id){
-    return exec('cat ' + MEM_DIR + id + '/memory.usage_in_bytes').catch(noFileCatch).then(parseInt);
+    return exec('cat ' + MEM_DIR + id + '/memory.usage_in_bytes').catch(noFileCatch).then(parseInt).then(function(mem){
+      return { mem: mem };
+    });
   },
   cpu: function(id){
-    return exec('cat ' + CPU_DIR + id + '/cpuacct.usage').catch(noFileCatch).then(parseInt);
+    return exec('cat ' + CPU_DIR + id + '/cpuacct.usage').catch(noFileCatch).then(parseInt).then(function(cpu){
+      return { cpu: cpu };
+    });
   },
   hdd: function(id){
-    return exec('du ' + HDD_DIR + id + '/rootfs -s').catch(noFileCatch).then(parseInt).then(function(output){
-      return output * 1024;
+    return exec('du ' + HDD_DIR + id + '/rootfs -s').catch(noFileCatch).then(parseInt).then(function(hdd){
+      return { hdd: hdd * 1024 };
     });
   }
 };
