@@ -1,0 +1,15 @@
+{
+  "name": "docker-usage",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    
+  },
+  "author": "Shannon Poole",
+  "dependencies": {
+    "express": "~4.4.2",
+    "dockerode": "~2.0.0",
+    "q": "~1.0.1"
+  }
+}
