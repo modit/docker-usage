@@ -12,12 +12,7 @@ router.use(function(req, res, next){
   };
   
   res.success = function(data){
-    if(data.stream && data.mime){
-      res.header("Content-Type", data.mime);
-      data.stream.pipe(res);
-    } else {
-      res.json(200, data);
-    }
+    res.json(200, data);
   };
   
   next();

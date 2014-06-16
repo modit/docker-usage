@@ -5,7 +5,7 @@ var Q         = require('q')
 ;
 
 //Docker methods to convert
-['createContainer', 'buildImage', 'listContainers', 'run', 'getEvents', 'pull'].forEach(function(method){
+['createContainer', 'buildImage', 'createImage', 'listContainers', 'run', 'getEvents', 'pull'].forEach(function(method){
   Docker.prototype[method + 'Q'] = function(){ return Q.npost(this, method, arguments); };
 });
 
