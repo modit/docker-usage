@@ -8,7 +8,7 @@ var cluster = require('cluster')
   , debug   = process.execArgv.join(' ').indexOf('--debug') !== -1
 ;
 
-var LOG_PATH = Path.resolve(process.env.LOG_PATH || '/log/builder');
+var LOG_PATH = Path.resolve(process.env.LOG_PATH || '/var/log/docker-usage');
 
 if (cluster.isMaster && !debug) {
   cluster.setupMaster({ silent: true });
