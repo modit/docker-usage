@@ -1,6 +1,6 @@
 var express = require('express')
   , router  = new express.Router()
-  , Docker  = require('./dockerode-q')
+  , Docker  = require('../utils/dockerode-q')
   , stat    = require('./stat.js')
 ;
 

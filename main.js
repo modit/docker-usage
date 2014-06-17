@@ -4,7 +4,7 @@ var cluster = require('cluster')
   , winston = require('winston')
   , Path    = require('path')
   , Server  = require('./server')
-  , Grace   = require('./grace')
+  , Grace   = require('./utils/grace')
   , debug   = process.execArgv.join(' ').indexOf('--debug') !== -1
 ;
 
