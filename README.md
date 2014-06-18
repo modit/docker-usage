@@ -6,16 +6,14 @@ docker-usage
 ### Usage
 
 #### Run in Docker container
-You will need to mount the appropriate crgoup directories and devicemapper directory
+You will need to mount the appropriate crgoup directories
 
 ```docker run -d -v /var/run/docker.sock:/docker.sock
                  -v /sys/fs/cgroup/memory/docker/:/stat/mem/:ro
                  -v /sys/fs/cgroup/cpuacct/docker/:/stat/cpu/:ro
-                 -v /var/lib/docker/devicemapper/mnt/:/stat/hdd
                  -e SOCKET_PATH=/docker.sock
                  -e MEM_DIR=/stat/mem/
                  -e CPU_DIR=/stat/cpu/
-                 -e HDD_DIR=/stat/hdd/
                  -e LOG_PATH=/logs
                  -p 4244:80 modit/docker-usage```
 

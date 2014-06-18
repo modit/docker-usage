@@ -15,7 +15,7 @@ var Q         = require('q')
 });
 
 //Image methods to convert
-['tag', 'remove', 'inspect'].forEach(function(method){
+['tag', 'remove', 'inspect', 'history'].forEach(function(method){
   Image.prototype[method + 'Q'] = function(){ return Q.npost(this, method, arguments); };
 });
 
