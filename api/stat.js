@@ -38,7 +38,7 @@ module.exports = {
     });
   },
   hdd: function(id){
-    return exec('du ' + HDD_DIR + id + '/rootfs -s').catch(noFileCatch).then(parseInt).then(function(hdd){
+    return exec('du ' + HDD_DIR + id + ' -s').catch(noFileCatch).then(parseInt).then(function(hdd){
       return { hdd: hdd * 1024 };
     });
   }
