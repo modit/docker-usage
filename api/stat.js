@@ -4,7 +4,7 @@ var Q       = require('q')
 
 var MEM_DIR = process.env.MEM_DIR || '/sys/fs/cgroup/memory/docker/';
 var CPU_DIR = process.env.CPU_DIR || '/sys/fs/cgroup/cpuacct/docker/';
-var HDD_DIR = process.env.HDD_DIR || '/var/lib/docker/devicemapper/mnt/';
+var HDD_DIR = process.env.HDD_DIR || '/var/lib/docker/aufs/mnt/';
 
 function noFileCatch(error){
   if(error.code === 1) {
