@@ -28,22 +28,7 @@ router.param('container', function(req, res, next, id) {
 
 router.get('/:container', function(req, res, next){
   //get all usage
-  stat.all(req.container.Id).then(res.success).catch(res.error);
-});
-
-router.get('/:container/mem', function(req, res, next){
-  //get memory usage
-  stat.mem(req.container.Id).then(res.success).catch(res.error);
-});
-
-router.get('/:container/cpu', function(req, res, next){
-  //get cpu usage
-  stat.cpu(req.container.Id).then(res.success).catch(res.error);
-});
-
-router.get('/:container/hdd', function(req, res, next){
-  //get hdd usage
-  stat.hdd(req.container.Id).then(res.success).catch(res.error);
+  res.success(stat.getUsage(req.container.Id));
 });
 
 exports.router = router;

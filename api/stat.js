@@ -1,36 +1,58 @@
 var Q       = require('q')
-  , exec    = Q.denodeify(require('child_process').exec)
-  , LRU     = require("lru-cache")
+  , fs      = require('fs')
+  , LRU     = require('lru-cache')
   , Docker  = require('../utils/dockerode-q')
 ;
 
 var docker = new Docker({ socketPath: process.env.SOCKET_PATH || '/var/run/docker.sock' });
- 
+
 var MEM_DIR = process.env.MEM_DIR || '/sys/fs/cgroup/memory/docker/';
 var CPU_DIR = process.env.CPU_DIR || '/sys/fs/cgroup/cpuacct/docker/';
-var HDD_TTL = process.env.HDD_TTL || 1000;
+var MAX_INTERVAL = process.env.MAX_INTERVAL || 500;
 
 var imageCache      = LRU({ max: 10000 });
 var containerCache  = LRU({ max: 10000 });
-var lastSizeCheck   = 0;
+var lastCheck = Date.now();
+var ioEmitter;
+
+function requestUpdate(){
+  setTimeout(update, MAX_INTERVAL - (Date.now() - lastCheck));
+}
+
+function update(){
+  lastCheck = Date.now();
+  
+  return docker.listContainersQ({ size: true }).then(function(containers){
+    return Q.all(containers.map(function(container){
+      
+      return Q.all([
+        getHddUsage(container),
+        getMemUsage(container),
+        getCpuUsage(container)
+      ]).spread(function(hdd, mem, cpu){
+        var usage = {
+          hdd: hdd,
+          mem: mem,
+          cpu: cpu
+        };
+      
+        containerCache.set(container.Id, usage);
+        
+        if(ioEmitter){
+          ioEmitter.emit('usage', { id: container.Id, usage: usage });
+        }
+      });
+      
+    }));
+  }).catch(console.warn).then(requestUpdate);
+  
+}
 
 function noFileCatch(error){
-  if(error.code === 1) {
+  if(error.errno === 34) {
     return 0;
   }
   return Q.reject(error);
-}
-
-function getContainerSizes(){
-  return docker.listContainersQ({ size: true }).then(function(containers){
-    return Q.all(containers.map(function(container){
-      return Q.fcall(function(){
-        return imageCache.get(container.Image) || getImageSize(container.Image);
-      }).then(function(imageSize){
-        containerCache.set(container.Id, parseInt(container.SizeRw, 10) + imageSize);
-      });
-    }));
-  });
 }
 
 function getImageSize(id){
@@ -43,37 +65,31 @@ function getImageSize(id){
   });
 }
 
+function getHddUsage(container){
+  return Q.fcall(function(){
+    return imageCache.get(container.Image) || getImageSize(container.Image);
+  }).then(function(imageSize){
+    return {
+      image: imageSize,
+      container: parseInt(container.SizeRw)
+    };
+  });
+}
+function getMemUsage(container){
+  return Q.ninvoke(fs, 'readFile', MEM_DIR + container.Id + '/memory.usage_in_bytes').catch(noFileCatch).then(parseInt);
+}
+
+function getCpuUsage(container){
+  return Q.ninvoke(fs, 'readFile', CPU_DIR + container.Id + '/cpuacct.usage').catch(noFileCatch).then(parseInt);
+}
+
 module.exports = {
-  all: function(id){
-    return Q.all([
-      this.mem(id),
-      this.cpu(id),
-      this.hdd(id),
-    ]).spread(function(mem, cpu, hdd){
-      return {
-        mem: mem.mem,
-        cpu: cpu.cpu,
-        hdd: hdd.hdd
-      };
-    });
+  io: function(io){
+    ioEmitter = io;
   },
-  mem: function(id){
-    return exec('cat ' + MEM_DIR + id + '/memory.usage_in_bytes').catch(noFileCatch).then(parseInt).then(function(mem){
-      return { mem: mem };
-    });
-  },
-  cpu: function(id){
-    return exec('cat ' + CPU_DIR + id + '/cpuacct.usage').catch(noFileCatch).then(parseInt).then(function(cpu){
-      return { cpu: cpu };
-    });
-  },
-  hdd: function(id){
-    return Q.fcall(function(){
-      if(Date.now() - lastSizeCheck > HDD_TTL){
-        return getContainerSizes();
-      }
-    }).then(function(){
-      return { hdd: containerCache.get(id) || 0 };
-    });
+  getUsage: function(id){
+    return containerCache.get(id);
   }
 };
+
+requestUpdate();
